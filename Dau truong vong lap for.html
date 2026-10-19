@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Đấu trường vòng lặp for — Tin học 10</title>
+<!--
+  ĐẤU TRƯỜNG VÒNG LẶP FOR — bộ 3 trò chơi cho Bài 20 «Câu lệnh lặp for» (Tin học 10)
+  Một file, chạy không cần mạng, không thư viện ngoài, không gửi dữ liệu đi.
+  Dữ liệu (tên đội, điểm, thống kê câu) lưu trong trình duyệt máy này; có nút Xuất CSV.
+  Chế độ chụp: #g1&cau=3&lat=1 · #g2&man=3&mau=1&chay=1 · #g3&lo=2&lat=1 · #ketqua&mau=1
+-->
+<style>
+:root{
+  --nen1:#eef4ff; --nen2:#fdf2ff; --mat:#ffffffcc; --vien:#c7d2fe;
+  --chu:#1e1b4b; --chu2:#475569; --chinh:#4f46e5; --chinh2:#7c3aed; --nhan:#0ea5e9;
+  --dau:#2563eb;   /* số bắt đầu — luôn xanh dương */
+  --dung:#dc2626;  /* số dừng (không lấy) — luôn đỏ */
+  --buoc:#d97706;  /* bước nhảy — luôn vàng cam */
+  --bien:#16a34a;  /* biến i — luôn xanh lá */
+  --ok:#16a34a; --sai:#dc2626; --okn:#dcfce7; --sain:#fee2e2;
+  --doi0:#7c3aed; --doi1:#ea580c; --doi2:#0891b2; --doi3:#db2777;
+  --code:#0f172a;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;color:var(--chu);font-size:19px;
+  background:radial-gradient(900px 500px at 8% 0%,#c7d2fe88,transparent 60%),radial-gradient(800px 500px at 100% 100%,#fbcfe888,transparent 60%),linear-gradient(135deg,var(--nen1),var(--nen2));
+  min-height:100vh;overflow-x:hidden}
+button{font-family:inherit;cursor:pointer}
+.chup *,.chup *::before,.chup *::after{transition:none!important;animation:none!important}
+/* thanh trên */
+.top{display:flex;align-items:center;gap:16px;padding:10px 22px;position:sticky;top:0;z-index:20;background:#ffffffb3;backdrop-filter:blur(8px);border-bottom:1px solid #e0e7ff}
+.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:22px;letter-spacing:.5px;cursor:pointer;user-select:none}
+.logo b{background:linear-gradient(90deg,var(--chinh),var(--chinh2),var(--doi3));-webkit-background-clip:text;background-clip:text;color:transparent}
+.diemnho{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.chipdoi{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;color:#fff;font-weight:700;font-size:16px;box-shadow:0 3px 10px #0002}
+.chipdoi span{background:#ffffff33;border-radius:999px;padding:0 8px}
+.nutnho{border:1px solid #c7d2fe;background:#fff;border-radius:12px;padding:8px 12px;font-size:16px;font-weight:600;color:var(--chu)}
+.nutnho:hover{transform:translateY(-2px)}
+.man{display:none;padding:18px 22px 70px;max-width:1520px;margin:0 auto;animation:hien .3s ease}
+.man.on{display:block}
+@keyframes hien{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+.kinh{background:var(--mat);border:1px solid #ffffffee;border-radius:20px;box-shadow:0 10px 30px #4f46e51a,0 1px 0 #fff inset;padding:18px}
+h1,h2,h3{margin:.2em 0 .4em}
+.nut{border:0;border-radius:14px;padding:12px 22px;min-height:48px;font-size:19px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--chinh),var(--chinh2));box-shadow:0 6px 16px #4f46e555;transition:.15s}
+.nut:hover{transform:translateY(-2px)} .nut:active{transform:translateY(1px) scale(.98)}
+.nut.phu{background:#fff;color:var(--chinh);border:2px solid #c7d2fe;box-shadow:none}
+.nut.xanh{background:linear-gradient(135deg,#16a34a,#0d9488)}
+.nut.cam{background:linear-gradient(135deg,#f59e0b,#ea580c)}
+.nut:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.nhap{position:fixed;left:0;right:0;bottom:0;text-align:center;font-size:14px;color:#334155;background:#fff9;padding:5px;z-index:15}
+/* mã nguồn */
+pre.code{background:var(--code);color:#e2e8f0;border-radius:16px;padding:16px 20px;margin:0;font:600 24px/1.5 Consolas,"Cascadia Mono","Courier New",monospace;overflow:auto;box-shadow:inset 0 0 0 1px #334155}
+.k{color:#c084fc}.f{color:#38bdf8}.s{color:#fbbf24}.n{color:#fb7185}.cm{color:#94a3b8}
+/* trang chủ */
+.hero{display:grid;grid-template-columns:1.25fr 1fr;gap:20px;align-items:center}
+.hero h1{font-size:46px;line-height:1.1}
+.hero h1 b{background:linear-gradient(90deg,var(--chinh),var(--doi3));-webkit-background-clip:text;background-clip:text;color:transparent}
+.bongnoi{position:relative;background:#fff;border-radius:18px;padding:12px 16px;box-shadow:0 6px 18px #0001;font-weight:600}
+.the3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:18px}
+.thegame{cursor:pointer;transition:.2s;text-align:left;border:0;padding:0;overflow:hidden}
+.thegame:hover{transform:translateY(-6px);box-shadow:0 18px 36px #4f46e533}
+.thegame .anh{height:170px;display:block;width:100%}
+.thegame .noi{padding:14px 18px}
+.thegame h3{font-size:24px}
+.thegame p{margin:0;color:var(--chu2);font-size:17px}
+.nhan{display:inline-block;font-size:14px;font-weight:800;padding:3px 10px;border-radius:999px;background:#eef2ff;color:var(--chinh);margin-bottom:6px}
+.thenho{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font:700 30px Consolas,monospace}
+.thenho .c{padding:2px 10px;border-radius:10px;color:#fff}
+.chuthich{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:16px;font-weight:600}
+.chuthich i{display:inline-block;width:14px;height:14px;border-radius:4px;margin-right:6px;vertical-align:-2px}
+.doi4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+.odoi{border-radius:16px;padding:10px 14px;color:#fff;display:flex;align-items:center;gap:10px;box-shadow:0 6px 16px #0002}
+.odoi input{flex:1;min-width:0;border:0;background:#ffffff2e;color:#fff;font-weight:800;font-size:19px;font-family:inherit;border-radius:10px;padding:6px 8px}
+.odoi .so{font-size:24px;font-weight:900}
+/* game 1 */
+.g1{display:grid;grid-template-columns:1.1fr 1fr;gap:18px}
+.dong{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.cham{display:flex;gap:6px}.cham i{width:14px;height:14px;border-radius:50%;background:#cbd5e1}
+.cham i.ht{background:var(--chinh);box-shadow:0 0 0 4px #c7d2fe}.cham i.ok{background:var(--ok)}.cham i.sai{background:var(--sai)}
+.hoi{font-size:26px;font-weight:800;margin:14px 0 10px}
+.dapan{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.da{display:flex;gap:12px;align-items:center;border:3px solid #e0e7ff;background:#fff;border-radius:16px;padding:12px 16px;font:700 24px Consolas,monospace;min-height:72px;transition:.25s;position:relative}
+.da .chu{font-family:"Segoe UI",system-ui,sans-serif;width:42px;height:42px;flex:none;border-radius:12px;display:grid;place-items:center;background:#eef2ff;color:var(--chinh);font-weight:900}
+.da .ai{position:absolute;right:8px;top:-12px;display:flex;gap:4px}
+.da .ai b{width:24px;height:24px;border-radius:50%;color:#fff;font:800 13px "Segoe UI";display:grid;place-items:center;box-shadow:0 2px 6px #0003}
+.da.dungroi{border-color:var(--ok);background:var(--okn);box-shadow:0 0 0 6px #16a34a33}
+.da.dungroi .chu{background:var(--ok);color:#fff}
+.da.sairoi{border-color:#fca5a5;background:#fff5f5;opacity:.85}
+.loigiai{font:600 15px "Segoe UI",sans-serif;color:#991b1b;margin-top:4px}
+.da.dungroi .loigiai{color:#166534}
+.chondoi{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
+.hangdoi{display:flex;align-items:center;gap:8px;background:#fff;border-radius:14px;padding:6px 10px;border:1px solid #e0e7ff}
+.hangdoi .ten{flex:1;font-weight:800;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hangdoi button{width:44px;height:44px;border-radius:12px;border:2px solid #e0e7ff;background:#f8fafc;font-weight:900;font-size:18px;color:#334155}
+.hangdoi button.chon{color:#fff;border-color:transparent}
+.dongho{position:relative;width:92px;height:92px}
+.dongho b{position:absolute;inset:0;display:grid;place-items:center;font-size:30px;font-weight:900}
+.truc{width:100%;height:auto;display:block}
+.ra{background:#0f172a;color:#86efac;border-radius:14px;padding:12px 16px;font:700 26px Consolas,monospace;min-height:62px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.ra .p{background:#16a34a33;border:1px solid #16a34a;border-radius:8px;padding:0 10px;animation:noi .35s ease}
+@keyframes noi{from{transform:scale(.4);opacity:0}}
+.mo{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;font-weight:700}
+.mo span{padding:4px 12px;border-radius:10px;color:#fff}
+/* game 2 */
+.g2{display:grid;grid-template-columns:1.25fr 1fr;gap:18px}
+.dongchè{width:100%;height:auto;display:block;border-radius:18px}
+.bangma{background:var(--code);border-radius:16px;padding:10px 0;min-height:250px;font:600 23px/1.55 Consolas,monospace;color:#e2e8f0;max-height:390px;overflow:auto}
+.ln{display:flex;align-items:center;padding:0 14px;border-left:5px solid transparent;cursor:pointer}
+.ln .so{width:32px;color:#64748b;font-size:16px;flex:none}
+.ln.dangchay{background:#16a34a33;border-left-color:#22c55e}
+.ln.loi{background:#dc262633;border-left-color:#ef4444}
+.ln.vao{background:#4f46e522}
+.ln .np{margin:0 4px;width:30px;height:30px;border-radius:8px;border:0;background:#334155;color:#fff;font-weight:900}
+.contro{color:#a5b4fc;font-style:italic;font-size:17px}
+.khoi{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.khoi button{border:0;border-radius:12px;padding:10px 14px;font:800 19px Consolas,monospace;color:#fff;box-shadow:0 4px 10px #0002}
+.khoi .kf{background:linear-gradient(135deg,#7c3aed,#4f46e5)}
+.khoi .kt{background:linear-gradient(135deg,#0ea5e9,#2563eb)}
+.khoi .kh{background:linear-gradient(135deg,#22c55e,#15803d)}
+.khoi .kq{background:linear-gradient(135deg,#f59e0b,#d97706)}
+.bongi{display:flex;gap:14px;align-items:center;margin:10px 0}
+.bongi .i{background:var(--bien);color:#fff;font:900 30px Consolas,monospace;border-radius:16px;padding:6px 16px;box-shadow:0 6px 16px #16a34a55;min-width:120px;text-align:center}
+.bongi .v{font-weight:800;font-size:20px;color:var(--chu2)}
+.thongbao{border-radius:14px;padding:12px 16px;font-weight:700;font-size:19px;margin-top:10px;display:none}
+.thongbao.ok{display:block;background:var(--okn);color:#166534;border:2px solid #86efac}
+.thongbao.sai{display:block;background:var(--sain);color:#991b1b;border:2px solid #fca5a5;animation:rung .4s}
+.thongbao.tin{display:block;background:#eef2ff;color:#3730a3;border:2px solid #c7d2fe}
+@keyframes rung{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.sao{font-size:34px;letter-spacing:4px}
+.manchon{display:flex;gap:8px;flex-wrap:wrap}
+.manchon button{border:2px solid #c7d2fe;background:#fff;border-radius:12px;padding:8px 14px;font-weight:800;font-size:16px;color:var(--chu)}
+.manchon button.on{background:var(--chinh);color:#fff;border-color:var(--chinh)}
+#robot{transition:transform .38s ease}
+#robot .xoay{transition:transform .3s ease;transform-box:fill-box;transform-origin:center}
+.bup{transition:opacity .4s,transform .4s;transform-box:fill-box;transform-origin:center}
+.bup.haiRoi{opacity:0;transform:scale(.2) translateY(-30px)}
+/* game 3 */
+.g3{display:grid;grid-template-columns:1.1fr 1fr;gap:18px}
+.lo{position:relative;overflow:hidden}
+.lo .so{font-weight:900;color:var(--chinh);font-size:18px;letter-spacing:2px}
+.camdoan{margin-top:12px;background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:16px;padding:12px 16px;font-weight:700;font-size:20px;border:2px dashed #d97706}
+.camdoan b{font:800 26px Consolas,monospace;color:#92400e}
+.dau{position:absolute;right:24px;top:70px;font-size:40px;font-weight:900;padding:6px 18px;border:6px solid;border-radius:14px;transform:rotate(-12deg) scale(1.8);opacity:0;transition:.35s cubic-bezier(.2,1.6,.4,1);background:#fffd}
+.dau.on{opacity:1;transform:rotate(-12deg) scale(1)}
+.dau.that{color:var(--ok);border-color:var(--ok)} .dau.loi{color:var(--sai);border-color:var(--sai)}
+.vi4{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vi{border-radius:16px;padding:10px 12px;color:#fff;box-shadow:0 6px 16px #0002}
+.vi .tren{display:flex;justify-content:space-between;align-items:center;font-weight:800}
+.vi .xu{font-size:24px;font-weight:900}
+.vi .gia{display:flex;align-items:center;gap:6px;margin-top:8px;background:#ffffff26;border-radius:12px;padding:6px}
+.vi .gia button{width:44px;height:40px;border:0;border-radius:10px;background:#fff;color:#1e293b;font-weight:900;font-size:17px}
+.vi .gia b{flex:1;text-align:center;font-size:24px}
+.vi .kq{font-weight:900;font-size:18px;margin-top:6px;min-height:24px}
+.bangvet{width:100%;border-collapse:collapse;font:700 20px Consolas,monospace;background:#fff;border-radius:12px;overflow:hidden}
+.bangvet th{background:#eef2ff;color:#3730a3;padding:6px 10px;font-family:"Segoe UI",sans-serif;font-size:16px}
+.bangvet td{padding:5px 10px;text-align:center;border-top:1px solid #eef2ff}
+.bangvet tr.moi{animation:noi .3s ease;background:#f0fdf4}
+.bangvet td.ci{color:var(--bien)}
+.khungvet{max-height:300px;overflow:auto;border-radius:12px;border:1px solid #e0e7ff;margin-top:10px}
+/* kết quả */
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kpi .kinh b{display:block;font-size:44px;font-weight:900;color:var(--chinh)}
+.kpi .kinh span{color:var(--chu2);font-weight:700}
+.bieudo{position:relative;height:330px}
+.bieudo canvas{position:absolute;inset:0;width:100%;height:100%}
+.bxh{display:flex;flex-direction:column;gap:10px}
+.bxh .h{display:flex;align-items:center;gap:12px;border-radius:14px;padding:10px 14px;color:#fff;font-weight:800;font-size:20px}
+.bxh .h .hang{font-size:28px;width:40px}
+.bxh .h .d{margin-left:auto;font-size:24px}
+.ruybang{position:fixed;top:120px;right:-60px;transform:rotate(35deg);background:#f59e0b;color:#fff;font-weight:900;padding:6px 80px;z-index:30;box-shadow:0 4px 12px #0003}
+#phaogiay{position:fixed;inset:0;pointer-events:none;z-index:50}
+@media (max-width:700px){.the3,.doi4,.kpi,.dapan,.chondoi,.vi4,.kq2{grid-template-columns:1fr!important}.top{flex-wrap:wrap;padding:8px 12px}.logo b{font-size:16px}.man{padding:12px 12px 70px}pre.code{font-size:17px}.hero h1{font-size:30px}.thenho{font-size:20px}.bangma{font-size:17px}}
+@media (max-width:1100px){.hero,.g1,.g2,.g3,.kq2{grid-template-columns:1fr!important}.the3,.doi4,.kpi{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<!-- gradient dùng chung, luôn hiển thị -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="gRobot" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a5b4fc"/><stop offset="1" stop-color="#6366f1"/></linearGradient>
+    <linearGradient id="gDoi" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bbf7d0"/><stop offset="1" stop-color="#86efac"/></linearGradient>
+    <linearGradient id="gLa" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4ade80"/><stop offset="1" stop-color="#15803d"/></linearGradient>
+    <linearGradient id="gDa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cbd5e1"/><stop offset="1" stop-color="#64748b"/></linearGradient>
+    <linearGradient id="gBua" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbbf24"/><stop offset="1" stop-color="#b45309"/></linearGradient>
+    <linearGradient id="gTroi" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e0f2fe"/><stop offset="1" stop-color="#f0fdf4"/></linearGradient>
+    <symbol id="bot" viewBox="0 0 100 100">
+      <line x1="50" y1="8" x2="50" y2="22" stroke="#6366f1" stroke-width="4"/><circle cx="50" cy="7" r="6" fill="#f472b6"/>
+      <rect x="18" y="22" width="64" height="50" rx="16" fill="url(#gRobot)" stroke="#4338ca" stroke-width="3"/>
+      <rect x="27" y="33" width="46" height="26" rx="10" fill="#1e1b4b"/>
+      <circle cx="40" cy="46" r="6" fill="#67e8f9"/><circle cx="60" cy="46" r="6" fill="#67e8f9"/>
+      <path d="M42 64 Q50 69 58 64" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <rect x="30" y="74" width="40" height="16" rx="6" fill="#818cf8"/><circle cx="36" cy="93" r="5" fill="#334155"/><circle cx="64" cy="93" r="5" fill="#334155"/>
+    </symbol>
+  </defs>
+</svg>
+<canvas id="phaogiay"></canvas>
+
+<div class="top">
+  <div class="logo" onclick="di('home')">
+    <svg width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="url(#gRobot)"/><path d="M12 20a8 8 0 1 1 3 6.2" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M10 25l5 1.5-1 -5" fill="#fff"/></svg>
+    <b>ĐẤU TRƯỜNG VÒNG LẶP FOR</b>
+  </div>
+  <div class="diemnho" id="diemnho"></div>
+  <button class="nutnho" onclick="di('ketqua')">📊 Kết quả</button>
+  <button class="nutnho" id="nutam" onclick="batTat()">🔊</button>
+</div>
+
+<!-- ============ TRANG CHỦ ============ -->
+<section class="man" id="m-home">
+  <div class="hero">
+    <div class="kinh">
+      <span class="nhan">TIN HỌC 10 · BÀI 20 · CÂU LỆNH LẶP FOR</span>
+      <h1>Ba thử thách để <b>làm chủ vòng lặp for</b></h1>
+      <div class="thenho">
+        <span>range(</span><span class="c" style="background:var(--dau)">bắt đầu</span><span>,</span>
+        <span class="c" style="background:var(--dung)">dừng</span><span>,</span>
+        <span class="c" style="background:var(--buoc)">bước</span><span>)</span>
+      </div>
+      <div class="chuthich">
+        <span><i style="background:var(--dau)"></i>số bắt đầu — <u>được lấy</u> (bỏ trống thì là 0)</span>
+        <span><i style="background:var(--dung)"></i>số dừng — <u>không lấy</u></span>
+        <span><i style="background:var(--buoc)"></i>bước — bỏ trống thì là 1</span>
+        <span><i style="background:var(--bien)"></i>biến <b>i</b> — đổi giá trị sau mỗi vòng</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:14px;align-items:center">
+      <svg width="190" height="190" viewBox="0 0 100 100" style="flex:none;animation:noiNhe 3s ease-in-out infinite"><use href="#bot"/></svg>
+      <div class="bongnoi">Chào cả lớp! Mình là <b>Bot Lặp</b>. Hôm nay các đội sẽ đua dãy số, lập trình cho mình hái chè, rồi đấu giá code. Sẵn sàng chưa nào? 🚀</div>
+    </div>
+  </div>
+  <style>@keyframes noiNhe{50%{transform:translateY(-10px)}}</style>
+  <div class="the3">
+    <button class="kinh thegame" onclick="di('g1')">
+      <svg class="anh" viewBox="0 0 400 170" preserveAspectRatio="xMidYMid slice"><rect width="400" height="170" fill="#eef2ff"/>
+        <line x1="30" y1="110" x2="370" y2="110" stroke="#94a3b8" stroke-width="4" stroke-linecap="round"/>
+        <g font-family="Consolas" font-weight="800" font-size="18" text-anchor="middle">
+          <circle cx="60" cy="110" r="16" fill="#16a34a"/><text x="60" y="116" fill="#fff">1</text>
+          <circle cx="150" cy="110" r="16" fill="#16a34a"/><text x="150" y="116" fill="#fff">4</text>
+          <circle cx="240" cy="110" r="16" fill="#16a34a"/><text x="240" y="116" fill="#fff">7</text>
+          <circle cx="330" cy="110" r="16" fill="#fee2e2" stroke="#dc2626" stroke-width="3"/><text x="330" y="116" fill="#dc2626">10</text>
+          <path d="M60 90 Q105 40 150 90 M150 90 Q195 40 240 90" stroke="#d97706" stroke-width="4" fill="none" stroke-dasharray="7 6"/>
+          <text x="105" y="52" fill="#d97706">+3</text><text x="195" y="52" fill="#d97706">+3</text>
+          <text x="200" y="152" fill="#1e1b4b" font-size="20">range(1, 10, 3)</text>
+        </g></svg>
+      <div class="noi"><span class="nhan">GAME 1 · 10 câu</span><h3>🏁 Đua range</h3><p>Nhìn đoạn code, các đội giơ thẻ chọn dãy số hoặc số vòng lặp đúng. Lật đáp án, máy chạy lần lượt từng giá trị của i.</p></div>
+    </button>
+    <button class="kinh thegame" onclick="di('g2')">
+      <svg class="anh" viewBox="0 0 400 170" preserveAspectRatio="xMidYMid slice"><rect width="400" height="170" fill="url(#gTroi)"/>
+        <path d="M0 120 Q100 80 200 110 T400 100 V170 H0Z" fill="url(#gDoi)"/>
+        <g fill="url(#gLa)"><ellipse cx="200" cy="112" rx="12" ry="7" transform="rotate(-30 200 112)"/><ellipse cx="260" cy="108" rx="12" ry="7" transform="rotate(-30 260 108)"/><ellipse cx="320" cy="104" rx="12" ry="7" transform="rotate(-30 320 104)"/></g>
+        <use href="#bot" x="90" y="55" width="80" height="80"/>
+        <rect x="200" y="18" width="180" height="56" rx="10" fill="#0f172a"/>
+        <text x="212" y="42" font-family="Consolas" font-size="15" fill="#c084fc" font-weight="700">for <tspan fill="#e2e8f0">i</tspan> in <tspan fill="#38bdf8">range</tspan>(<tspan fill="#fb7185">5</tspan>):</text>
+        <text x="232" y="64" font-family="Consolas" font-size="15" fill="#e2e8f0" font-weight="700">tiến(); hái()</text></svg>
+      <div class="noi"><span class="nhan">GAME 2 · 4 màn</span><h3>🍃 Robot hái chè</h3><p>Ghép lệnh for để Bot Lặp hái hết búp chè trên đồi. Robot chạy từng vòng, giá trị i hiện ngay trên màn. Càng ít lệnh càng nhiều sao.</p></div>
+    </button>
+    <button class="kinh thegame" onclick="di('g3')">
+      <svg class="anh" viewBox="0 0 400 170" preserveAspectRatio="xMidYMid slice"><rect width="400" height="170" fill="#fff7ed"/>
+        <g transform="rotate(-28 120 90)"><rect x="70" y="60" width="100" height="44" rx="10" fill="url(#gBua)"/><rect x="113" y="100" width="14" height="70" rx="5" fill="#92400e"/></g>
+        <rect x="70" y="140" width="110" height="16" rx="5" fill="#b45309"/>
+        <g font-family="Consolas" font-weight="800"><circle cx="270" cy="70" r="34" fill="#fbbf24" stroke="#b45309" stroke-width="4"/><text x="270" y="80" text-anchor="middle" font-size="28" fill="#92400e">xu</text>
+        <rect x="215" y="118" width="150" height="34" rx="8" fill="#fff" stroke="#16a34a" stroke-width="3"/><text x="290" y="141" text-anchor="middle" fill="#16a34a" font-size="17">HÀNG THẬT ✓</text></g></svg>
+      <div class="noi"><span class="nhan">GAME 3 · 9 lô code</span><h3>🔨 Đấu giá code</h3><p>Mỗi đội có 1000 xu. Đặt giá cho đoạn code mà đội tin là in đúng kết quả. Lật đáp án bằng bảng chạy từng vòng.</p></div>
+    </button>
+  </div>
+  <div class="kinh" style="margin-top:18px">
+    <div class="dong"><h3 style="margin:0">👥 Các đội hôm nay</h3><span style="color:var(--chu2);font-size:16px">Bấm vào tên để đổi · chỉ ghi tên đội, không ghi tên học sinh</span></div>
+    <div class="doi4" id="doi4"></div>
+  </div>
+</section>
+
+<!-- ============ GAME 1 ============ -->
+<section class="man" id="m-g1">
+  <div class="g1">
+    <div class="kinh">
+      <div class="dong"><span class="nhan" style="margin:0">🏁 ĐUA RANGE</span><b id="g1so" style="font-size:20px"></b><div class="cham" id="g1cham"></div>
+        <div style="margin-left:auto" class="dongho"><svg width="92" height="92" viewBox="0 0 92 92"><circle cx="46" cy="46" r="40" fill="#fff" stroke="#e0e7ff" stroke-width="8"/><circle id="g1vong" cx="46" cy="46" r="40" fill="none" stroke="#4f46e5" stroke-width="8" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="0" transform="rotate(-90 46 46)"/></svg><b id="g1giay">30</b></div>
+      </div>
+      <pre class="code" id="g1code"></pre>
+      <div class="hoi" id="g1hoi"></div>
+      <div class="dapan" id="g1dapan"></div>
+    </div>
+    <div class="kinh">
+      <h3>Các đội giơ thẻ — thầy/cô bấm lựa chọn của từng đội</h3>
+      <div class="chondoi" id="g1doi"></div>
+      <div class="dong" style="margin:14px 0">
+        <button class="nut cam" id="g1lat" onclick="g1Lat()">🔍 Lật đáp án</button>
+        <button class="nut phu" onclick="g1Di(-1)">← Câu trước</button>
+        <button class="nut" onclick="g1Di(1)">Câu tiếp →</button>
+      </div>
+      <h3 style="margin-top:6px">Máy chạy vòng lặp</h3>
+      <svg class="truc" id="g1truc" viewBox="0 0 1000 190"></svg>
+      <div class="mo" id="g1mo"></div>
+      <div class="ra" id="g1ra"><span style="color:#64748b">▶ kết quả hiện ở đây khi lật đáp án</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GAME 2 ============ -->
+<section class="man" id="m-g2">
+  <div class="g2">
+    <div class="kinh">
+      <div class="dong"><span class="nhan" style="margin:0">🍃 ROBOT HÁI CHÈ</span><div class="manchon" id="g2man"></div>
+        <b id="g2gio" style="margin-left:auto;font-size:20px"></b></div>
+      <h2 id="g2ten" style="margin-top:10px"></h2>
+      <svg class="dongchè" id="g2doi" viewBox="0 0 672 420"></svg>
+      <div class="bongi"><div class="i" id="g2i">i = –</div><div class="v" id="g2v">Bấm ▶ Chạy để Bot Lặp làm theo chương trình</div></div>
+    </div>
+    <div class="kinh">
+      <h3>Chương trình của đội <span id="g2dem" style="font-size:16px;color:var(--chu2)"></span></h3>
+      <div class="bangma" id="g2ma"></div>
+      <div class="khoi">
+        <button class="kf" onclick="g2Them('for')">for i in range(n):</button>
+        <button class="kt" onclick="g2Them('tien')">tiến()</button>
+        <button class="kh" onclick="g2Them('hai')">hái()</button>
+        <button class="kq" onclick="g2Them('trai')">quay_trái()</button>
+        <button class="kq" onclick="g2Them('phai')">quay_phải()</button>
+      </div>
+      <div class="dong">
+        <button class="nut xanh" id="g2chay" onclick="g2Chay()">▶ Chạy</button>
+        <button class="nut phu" onclick="g2Ra()">⇤ Ra khỏi for</button>
+        <button class="nut phu" onclick="g2Xoa()">⌫ Xoá lệnh cuối</button>
+        <button class="nut phu" onclick="g2XoaHet()">🗑 Xoá hết</button>
+        <button class="nut phu" onclick="g2GoiY()">💡 Gợi ý</button>
+      </div>
+      <div class="thongbao" id="g2tb"></div>
+      <div id="g2thuong" style="display:none;margin-top:10px"><b>Cộng điểm cho đội làm được:</b><div class="dong" id="g2nutdoi" style="margin-top:8px"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GAME 3 ============ -->
+<section class="man" id="m-g3">
+  <div class="g3">
+    <div class="kinh lo">
+      <div class="dong"><span class="nhan" style="margin:0">🔨 ĐẤU GIÁ CODE</span><span class="so" id="g3so"></span><div class="cham" id="g3cham"></div></div>
+      <div class="dau" id="g3dau"></div>
+      <pre class="code" id="g3code" style="margin-top:12px"></pre>
+      <div class="camdoan">Người bán cam đoan đoạn code in ra: <b id="g3cd"></b></div>
+      <div class="thongbao" id="g3tb"></div>
+      <div class="khungvet" id="g3khung" style="display:none"><table class="bangvet" id="g3vet"></table></div>
+      <div class="ra" id="g3ra" style="margin-top:10px"><span style="color:#64748b">▶ kết quả thật hiện ở đây</span></div>
+    </div>
+    <div class="kinh">
+      <h3>Ví xu của các đội — đặt giá nếu tin là <span style="color:var(--ok)">hàng thật</span></h3>
+      <div class="vi4" id="g3vi"></div>
+      <div class="dong" style="margin-top:14px">
+        <button class="nut cam" id="g3lat" onclick="g3Lat()">🔨 Chốt giá & lật kết quả</button>
+        <button class="nut phu" onclick="g3Di(-1)">← Lô trước</button>
+        <button class="nut" onclick="g3Di(1)">Lô tiếp →</button>
+      </div>
+      <p style="color:var(--chu2);font-size:16px;margin:10px 0 0">Luật: hàng thật → đội được thêm đúng số xu đã đặt · hàng lỗi → mất số xu đã đặt. Không đặt giá cho hàng lỗi là đội tinh mắt!</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ KẾT QUẢ ============ -->
+<section class="man" id="m-ketqua">
+  <h2>📊 Kết quả & câu lớp hay sai</h2>
+  <div class="kpi" id="kqkpi"></div>
+  <div class="kq2" style="display:grid;grid-template-columns:1.6fr 1fr;gap:18px;margin-top:18px">
+    <div class="kinh"><h3>Tỉ lệ đội trả lời đúng theo từng câu / lô</h3><div class="bieudo"><canvas id="kqbd"></canvas></div>
+      <div class="chuthich"><span><i style="background:#16a34a"></i>từ 70% trở lên</span><span><i style="background:#f59e0b"></i>40% – dưới 70%</span><span><i style="background:#dc2626"></i>dưới 40% — cần dạy lại</span></div></div>
+    <div class="kinh"><h3>🏆 Bảng xếp hạng đội</h3><div class="bxh" id="kqbxh"></div></div>
+  </div>
+  <div class="kinh" style="margin-top:18px"><h3>🔎 Ba chỗ lớp hay sai nhất</h3><div id="kqsai"></div></div>
+  <div class="dong" style="margin-top:18px">
+    <button class="nut xanh" onclick="xuatCSV()">⬇ Xuất kết quả CSV</button>
+    <button class="nut phu" onclick="datLaiXu()">💰 Phát lại 1000 xu</button>
+    <button class="nut phu" onclick="xoaHet()">🗑 Xoá điểm & thống kê</button>
+  </div>
+  <p style="color:var(--chu2);font-size:16px">Dữ liệu nằm trong trình duyệt của máy này. Cuối buổi bấm <b>Xuất kết quả CSV</b> để lưu làm minh chứng.</p>
+</section>
+
+<div class="nhap">✅ BẢN NHÁP — thầy/cô duyệt trước khi dùng · Đấu trường vòng lặp for · Tin học 10</div>
+
+<script>
+"use strict";
+/* ---------- tiện ích ---------- */
+const $ = s => document.querySelector(s);
+const MAUDOI = ['var(--doi0)','var(--doi1)','var(--doi2)','var(--doi3)'];
+const KHOA = 'tin10_dau_truong_for_v1';
+let INSTANT = false, MAU = false, AM = true;
+
+function macDinh(){ return {teams:[1,2,3,4].map(n=>({ten:'Đội '+n,diem:0,xu:1000})), stats:{}}; }
+function napDL(){ try{ const s = JSON.parse(localStorage.getItem(KHOA)); if(s && s.teams && s.teams.length===4) return s; }catch(e){} return macDinh(); }
+let S = napDL();
+function luu(){ if(MAU) return; try{ localStorage.setItem(KHOA, JSON.stringify(S)); }catch(e){} }
+
+function esc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toMau(code){
+  return esc(code).replace(/("[^"]*")|(#.*)|\b(for|in|if|print|range)\b|\b(\d+)\b/g,(m,s,c,k,n)=>{
+    if(s) return '<span class="s">'+s+'</span>';
+    if(c) return '<span class="cm">'+c+'</span>';
+    if(k) return '<span class="'+((k==='print'||k==='range')?'f':'k')+'">'+k+'</span>';
+    return '<span class="n">'+n+'</span>';
+  });
+}
+function pyRange(a,b,c){ if(b===undefined){b=a;a=0;} if(c===undefined)c=1; const r=[]; if(c>0){for(let i=a;i<b;i+=c)r.push(i);} else {for(let i=a;i>b;i+=c)r.push(i);} return r; }
+function ghiTK(id, dung, sai, chon){ if(MAU||INSTANT) return; const t = S.stats[id] || (S.stats[id]={dung:0,sai:0,chon:{}}); t.dung+=dung; t.sai+=sai; if(chon) chon.forEach(c=>{ if(c!=null) t.chon[c]=(t.chon[c]||0)+1; }); luu(); }
+
+/* âm thanh — WebAudio, không cần file */
+let AC=null;
+function am(f,d,kieu='sine',v=.15,tre=0){ if(!AM||INSTANT) return; try{ AC=AC||new (window.AudioContext||window.webkitAudioContext)(); const o=AC.createOscillator(), g=AC.createGain(); o.type=kieu; o.frequency.value=f; const t=AC.currentTime+tre; g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(.001,t+d); o.connect(g).connect(AC.destination); o.start(t); o.stop(t+d+.02);}catch(e){} }
+const ting = ()=>{ am(880,.15); am(1320,.3,'sine',.15,.12); };
+const buzz = ()=>{ am(170,.35,'square',.07); };
+const bop  = (k=0)=>{ am(520+k*40,.09,'triangle',.12); };
+function batTat(){ AM=!AM; $('#nutam').textContent = AM?'🔊':'🔇'; }
+
+/* pháo giấy */
+const PG = $('#phaogiay'), pg = PG.getContext('2d'); let hat=[], pgChay=false;
+function phaoGiay(){ if(INSTANT) return; PG.width=innerWidth; PG.height=innerHeight; const mau=['#4f46e5','#16a34a','#f59e0b','#db2777','#0ea5e9','#ea580c'];
+  for(let k=0;k<140;k++) hat.push({x:innerWidth/2+(Math.random()-.5)*300,y:innerHeight/3,vx:(Math.random()-.5)*16,vy:-Math.random()*14-4,r:Math.random()*7+4,c:mau[k%6],a:Math.random()*6,s:1});
+  if(!pgChay){ pgChay=true; requestAnimationFrame(vePG); } }
+function vePG(){ pg.clearRect(0,0,PG.width,PG.height); hat.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.45;p.vx*=.99;p.a+=.2;p.s-=.006; pg.save();pg.globalAlpha=Math.max(p.s,0);pg.translate(p.x,p.y);pg.rotate(p.a);pg.fillStyle=p.c;pg.fillRect(-p.r/2,-p.r/4,p.r,p.r/2);pg.restore();});
+  hat=hat.filter(p=>p.s>0&&p.y<PG.height+40); if(hat.length) requestAnimationFrame(vePG); else {pgChay=false; pg.clearRect(0,0,PG.width,PG.height);} }
+
+/* thanh điểm trên cùng + ô đội trang chủ */
+function veDiem(){
+  $('#diemnho').innerHTML = S.teams.map((t,k)=>`<div class="chipdoi" style="background:${MAUDOI[k]}">${esc(t.ten)} <span>${t.diem}</span></div>`).join('');
+  $('#doi4').innerHTML = S.teams.map((t,k)=>`<div class="odoi" style="background:${MAUDOI[k]}"><input value="${esc(t.ten)}" maxlength="18" onchange="doiTen(${k},this.value)" aria-label="Tên đội ${k+1}"><div class="so">${t.diem}<small style="font-size:14px"> điểm</small></div></div>`).join('');
+}
+function doiTen(k,v){ v=v.trim().slice(0,18); if(v){ S.teams[k].ten=v; luu(); veDiem(); } }
+function congDiem(k,d){ S.teams[k].diem+=d; luu(); veDiem(); }
+
+/* ---------- định tuyến ---------- */
+function di(m){ try{ location.hash = m; }catch(e){} if(location.hash.slice(1)!==m) route(m); }
+function route(h0){
+  const h = (typeof h0==='string' && h0) || location.hash.slice(1) || 'home'; const [man,...ps] = h.split('&'); const P = {};
+  ps.forEach(p=>{ const [k,v]=p.split('='); P[k]= v===undefined ? '1' : decodeURIComponent(v); });
+  INSTANT = !!(P.lat||P.chay||P.mau||P.chup); MAU = !!P.mau || !!P.lat || !!P.chay;
+  document.body.classList.toggle('chup', INSTANT);
+  // chỉ đổi bộ dữ liệu khi chuyển giữa dữ liệu thử và dữ liệu thật (máy chặn bộ nhớ vẫn giữ điểm trong buổi)
+  if(MAU){ if(!S._mau){ S = mauDL(); S._mau = true; } } else if(S._mau){ S = napDL(); }
+  document.querySelectorAll('.man').forEach(e=>e.classList.remove('on'));
+  const el = $('#m-'+man) || $('#m-home'); el.classList.add('on');
+  document.querySelectorAll('.ruybang').forEach(e=>e.remove());
+  if(P.mau && man==='ketqua'){ const r=document.createElement('div'); r.className='ruybang'; r.textContent='DỮ LIỆU THỬ'; document.body.appendChild(r); }
+  veDiem();
+  if(man==='g1') g1Mo(P); else if(man==='g2') g2Mo(P); else if(man==='g3') g3Mo(P); else if(man==='ketqua') kqVe();
+  else dungDongHo();
+  scrollTo(0,0);
+}
+addEventListener('hashchange', route);
+
+/* ================= GAME 1 — ĐUA RANGE ================= */
+const G1 = [
+ {id:'C1', code:'for i in range(5):\n    print(i)', hoi:'Màn hình in ra dãy số nào?', r:[5],
+  op:[['0 1 2 3 4','Đúng! Không ghi số bắt đầu thì range bắt đầu từ 0 và dừng trước 5.'],['1 2 3 4 5','Sai ở số đầu: range(5) bắt đầu từ 0, không phải 1.'],['0 1 2 3 4 5','Sai ở số cuối: range dừng TRƯỚC 5, không lấy 5.'],['1 2 3 4','Sai số đầu: phải bắt đầu từ 0.']]},
+ {id:'C2', code:'for i in range(2, 7):\n    print(i)', hoi:'Màn hình in ra dãy số nào?', r:[2,7],
+  op:[['2 3 4 5 6','Đúng! Lấy số đầu 2, dừng trước 7.'],['2 3 4 5 6 7','Lấy cả 7 — số dừng không bao giờ được lấy.'],['3 4 5 6','Bỏ mất 2 — số bắt đầu luôn được lấy.'],['3 4 5 6 7','Ngược quy tắc: số đầu được lấy, số dừng không lấy.']]},
+ {id:'C3', code:'for i in range(1, 10, 3):\n    print(i)', hoi:'Màn hình in ra dãy số nào?', r:[1,10,3],
+  op:[['1 4 7','Đúng! Bắt đầu 1, mỗi lần cộng 3: 1, 4, 7. Tới 10 thì dừng.'],['1 4 7 10','10 là số dừng nên không lấy.'],['1 3 5 7 9','Nhầm bước: bước là 3, không phải 2.'],['3 6 9','Bắt đầu từ 1 chứ không phải từ 3.']]},
+ {id:'C4', code:'for i in range(10, 0, -2):\n    print(i)', hoi:'Màn hình in ra dãy số nào?', r:[10,0,-2],
+  op:[['10 8 6 4 2','Đúng! Bước −2 nên đếm lùi, dừng trước 0.'],['10 8 6 4 2 0','0 là số dừng nên không lấy.'],['2 4 6 8 10','Bước âm nên phải đếm lùi từ 10.'],['Không in gì','Có in: bước âm cho phép đếm lùi khi số đầu lớn hơn số dừng.']]},
+ {id:'C5', code:'for i in range(3, 15):\n    print(i)', hoi:'Vòng lặp chạy bao nhiêu lần?', r:[3,15],
+  op:[['12','Đúng! i chạy từ 3 đến 14: 15 − 3 = 12 lần.'],['13','Đã tính cả i = 15 — số dừng không lấy.'],['15','15 là số dừng, không phải số lần lặp.'],['11','Đếm thiếu: 3, 4, …, 14 là 12 giá trị.']]},
+ {id:'C6', code:'for i in range(0, 20, 5):\n    print(i)', hoi:'Vòng lặp chạy bao nhiêu lần?', r:[0,20,5],
+  op:[['4','Đúng! i = 0, 5, 10, 15 → 4 lần.'],['5','Đã tính cả 20 — số dừng không lấy.'],['20','20 là số dừng, không phải số lần lặp.'],['3','Quên vòng i = 0.']]},
+ {id:'C7', code:'for i in range(5, 1):\n    print(i)', hoi:'Màn hình in ra gì?', r:[5,1],
+  op:[['Không in gì','Đúng! Số đầu 5 lớn hơn số dừng 1 mà bước mặc định là +1 → dãy rỗng.'],['5 4 3 2','Muốn đếm lùi phải ghi bước âm: range(5, 1, -1).'],['1 2 3 4 5','range không tự đảo chiều và không lấy số dừng.'],['5 4 3 2 1','Thiếu bước âm, và số dừng 1 cũng không được lấy.']]},
+ {id:'C8', code:'for i in range(____):\n    print(i)', hoi:'Điền gì vào chỗ trống để in ra 1 3 5 7 9?', r:[1,10,2],
+  op:[['1, 10, 2','Đúng! Bắt đầu 1, bước 2, dừng trước 10.'],['1, 9, 2','Thiếu 9 vì dừng trước 9.'],['1, 11','Bước 1 sẽ in mọi số từ 1 đến 10.'],['0, 10, 2','Bắt đầu từ 0 sẽ in số chẵn 0 2 4 6 8.']]},
+ {id:'C9', code:'s = 0\nfor i in range(1, 5):\n    s = s + i\nprint(s)', hoi:'Màn hình in ra số nào?', r:[1,5], tong:true,
+  op:[['10','Đúng! s = 1 + 2 + 3 + 4 = 10.'],['15','Đã cộng cả 5 — range(1, 5) dừng trước 5.'],['6','Thiếu số 4: i chạy tới 4.'],['4','4 là số lần lặp, còn s là tổng.']]},
+ {id:'C10', code:'for i in range(3):\n    print("Tin học")', hoi:'Chữ «Tin học» được in mấy lần?', r:[3], chu:'Tin học',
+  op:[['3 lần','Đúng! range(3) có 3 giá trị 0, 1, 2 → lặp 3 lần.'],['4 lần','range(3) chỉ có 0, 1, 2 — không có 3.'],['2 lần','Quên vòng i = 0.'],['1 lần','Lệnh print nằm trong for nên chạy ở mọi vòng.']]}
+];
+// hoán vị cố định để đáp án đúng không luôn ở ô A
+const HV = [[2,0,3,1],[0,3,1,2],[3,1,0,2],[1,2,3,0],[2,3,0,1],[0,2,1,3],[3,0,2,1],[1,3,0,2],[2,1,3,0],[3,2,1,0]];
+let g1 = {cau:0, chon:[null,null,null,null], lat:false, gio:30, tm:null, an:[]};
+const CHU = ['A','B','C','D'];
+
+function g1Mo(P){ g1.cau = Math.min(Math.max((+P.cau||1)-1,0),G1.length-1); g1Ve();
+  if(P.lat){ g1.chon = (P.chon||'').length===4 ? P.chon.split('').map(c=>CHU.indexOf(c)) : g1MauChon(); g1VeDoi(); g1Lat(); } }
+function g1MauChon(){ const q=G1[g1.cau], h=HV[g1.cau]; const vt=h.indexOf(0); return [vt,(vt+1)%4,vt,(vt+2)%4]; }
+function g1Ve(){
+  const q = G1[g1.cau], h = HV[g1.cau]; g1.chon=[null,null,null,null]; g1.lat=false; dungAn();
+  $('#g1so').textContent = 'Câu '+(g1.cau+1)+'/'+G1.length;
+  $('#g1cham').innerHTML = G1.map((_,k)=>`<i class="${k===g1.cau?'ht':''}"></i>`).join('');
+  $('#g1code').innerHTML = toMau(q.code);
+  $('#g1hoi').textContent = q.hoi;
+  $('#g1dapan').innerHTML = h.map((oi,k)=>`<div class="da" id="da${k}"><span class="chu">${CHU[k]}</span><div><div>${esc(q.op[oi][0])}</div><div class="loigiai"></div></div><div class="ai"></div></div>`).join('');
+  $('#g1lat').disabled=false;
+  g1VeDoi(); g1VeTruc([],-1);
+  $('#g1mo').innerHTML=''; $('#g1ra').innerHTML='<span style="color:#64748b">▶ kết quả hiện ở đây khi lật đáp án</span>';
+  batDongHo();
+}
+function g1VeDoi(){
+  $('#g1doi').innerHTML = S.teams.map((t,k)=>`<div class="hangdoi"><span class="ten" style="color:${MAUDOI[k]}">● ${esc(t.ten)}</span>${CHU.map((c,j)=>`<button class="${g1.chon[k]===j?'chon':''}" style="${g1.chon[k]===j?'background:'+MAUDOI[k]:''}" onclick="g1Chon(${k},${j})">${c}</button>`).join('')}</div>`).join('');
+  document.querySelectorAll('#g1dapan .ai').forEach((e,j)=>{ e.innerHTML = g1.chon.map((c,k)=>c===j?`<b style="background:${MAUDOI[k]}">${k+1}</b>`:'').join(''); });
+}
+function g1Chon(k,j){ if(g1.lat) return; g1.chon[k] = g1.chon[k]===j?null:j; bop(j); g1VeDoi(); }
+function batDongHo(){ dungDongHo(); g1.gio=30; veDongHo(); if(INSTANT) return; g1.tm=setInterval(()=>{ g1.gio--; veDongHo(); if(g1.gio<=5&&g1.gio>0) am(700,.08,'sine',.1); if(g1.gio<=0){ dungDongHo(); am(330,.5,'sawtooth',.08);} },1000); }
+function dungDongHo(){ if(g1.tm){clearInterval(g1.tm); g1.tm=null;} }
+function veDongHo(){ $('#g1giay').textContent=g1.gio; const v=$('#g1vong'); v.style.strokeDashoffset = 251.3*(1-g1.gio/30); v.style.stroke = g1.gio<=5?'#dc2626':'#4f46e5'; }
+function dungAn(){ g1.an.forEach(clearTimeout); g1.an=[]; }
+
+function g1Lat(){
+  if(g1.lat) return; g1.lat=true; dungDongHo(); $('#g1lat').disabled=true;
+  const q=G1[g1.cau], h=HV[g1.cau], dungO=h.indexOf(0);
+  h.forEach((oi,k)=>{ const e=$('#da'+k); e.classList.add(oi===0?'dungroi':'sairoi'); e.querySelector('.loigiai').textContent=q.op[oi][1]; });
+  let soDung=0, soSai=0; const chonGoc=[];
+  g1.chon.forEach((c,k)=>{ if(c==null) return; chonGoc.push(h[c]); if(c===dungO){ soDung++; if(!MAU) congDiem(k,10);} else soSai++; });
+  ghiTK(q.id, soDung, soSai, chonGoc);
+  const ch=$('#g1cham').children[g1.cau]; if(ch){ ch.className = soDung>=soSai?'ok':'sai'; }
+  if(soDung>0){ ting(); phaoGiay(); } else if(soSai>0) buzz();
+  g1ChayTruc();
+}
+function g1VeTruc(gt, sang){
+  const q=G1[g1.cau]; const r=q.r; let a,b,c; if(r.length===1){a=0;b=r[0];c=1;} else {a=r[0];b=r[1];c=r[2]||1;}
+  const lo=Math.min(a,b), hi=Math.max(a,b), n=hi-lo, W=1000, x0=95, x1=905, K=v=>Math.min(895,Math.max(105,v)), X=v=> x0+(v-lo)*(x1-x0)/Math.max(n,1);
+  const ds = pyRange(a,b,c); let s='';
+  s+=`<rect x="0" y="0" width="1000" height="190" rx="16" fill="#f8fafc"/>`;
+  s+=`<line x1="${x0-20}" y1="120" x2="${x1+20}" y2="120" stroke="#94a3b8" stroke-width="5" stroke-linecap="round"/>`;
+  const buocVe = n>20?2:1;
+  for(let v=lo; v<=hi; v++){ if((v-lo)%buocVe && v!==hi) continue; s+=`<line x1="${X(v)}" y1="110" x2="${X(v)}" y2="130" stroke="#94a3b8" stroke-width="3"/><text x="${X(v)}" y="160" text-anchor="middle" font-family="Consolas" font-size="24" font-weight="700" fill="#64748b">${v}</text>`; }
+  s+=`<g><rect x="${K(X(a))-65}" y="6" width="130" height="32" rx="9" fill="var(--dau)"/><text x="${K(X(a))}" y="29" text-anchor="middle" fill="#fff" font-size="20" font-weight="800" font-family="Segoe UI">bắt đầu</text><line x1="${X(a)}" y1="34" x2="${X(a)}" y2="100" stroke="var(--dau)" stroke-width="3" stroke-dasharray="5 4"/></g>`;
+  s+=`<g><rect x="${K(X(b))-100}" y="${Math.abs(X(a)-X(b))<250?44:6}" width="200" height="32" rx="9" fill="var(--dung)"/><text x="${K(X(b))}" y="${Math.abs(X(a)-X(b))<250?67:29}" text-anchor="middle" fill="#fff" font-size="20" font-weight="800" font-family="Segoe UI">dừng · không lấy</text>
+     <circle cx="${X(b)}" cy="120" r="17" fill="#fee2e2" stroke="var(--dung)" stroke-width="3"/><path d="M${X(b)-8} 112 l16 16 M${X(b)+8} 112 l-16 16" stroke="var(--dung)" stroke-width="4" stroke-linecap="round"/></g>`;
+  gt.forEach((v,k)=>{ if(k>0){ const p=gt[k-1]; s+=`<path d="M${X(p)} 100 Q${(X(p)+X(v))/2} ${55} ${X(v)} 100" stroke="var(--buoc)" stroke-width="4" fill="none" stroke-dasharray="7 6"/><text x="${(X(p)+X(v))/2}" y="72" text-anchor="middle" fill="var(--buoc)" font-weight="800" font-size="22" font-family="Consolas">${c>0?'+':''}${c}</text>`; } });
+  gt.forEach((v,k)=>{ s+=`<circle cx="${X(v)}" cy="120" r="${k===sang?25:21}" fill="var(--bien)" stroke="#fff" stroke-width="3"/><text x="${X(v)}" y="127" text-anchor="middle" fill="#fff" font-family="Consolas" font-weight="900" font-size="22">${v}</text>`; });
+  if(sang>=0 && gt.length) s+=`<g transform="translate(${X(gt[sang])-24},62)"><use href="#bot" width="48" height="48"/></g>`;
+  $('#g1truc').innerHTML=s; return ds;
+}
+function g1ChayTruc(){
+  const q=G1[g1.cau]; const r=q.r; const a=r.length===1?0:r[0], b=r.length===1?r[0]:r[1], c=r[2]||1;
+  const ds=pyRange(a,b,c);
+  $('#g1mo').innerHTML=`<span style="background:var(--dau)">bắt đầu = ${a}</span><span style="background:var(--dung)">dừng trước ${b}</span><span style="background:var(--buoc)">bước = ${c}</span><span style="background:var(--bien)">số vòng = ${ds.length}</span>`;
+  const ra=$('#g1ra'); ra.innerHTML='';
+  if(!ds.length){ g1VeTruc([],-1); ra.innerHTML='<span style="color:#fca5a5">∅ Dãy rỗng — vòng lặp không chạy lần nào, không in gì.</span>'; return; }
+  let tong=0;
+  const buoc=(k)=>{ g1VeTruc(ds.slice(0,k+1),k); bop(k); tong+=ds[k];
+    const nd = q.tong ? `i=${ds[k]} → s=${tong}` : (q.chu ? `${q.chu}` : ds[k]);
+    ra.insertAdjacentHTML('beforeend',`<span class="p">${esc(nd)}</span>`);
+    if(k===ds.length-1 && q.tong) ra.insertAdjacentHTML('beforeend',`<span class="p" style="background:#4f46e555;border-color:#818cf8;color:#fff">print(s) → ${tong}</span>`); };
+  if(INSTANT){ ds.forEach((_,k)=>buoc(k)); return; }
+  ds.forEach((_,k)=>g1.an.push(setTimeout(()=>buoc(k), 400+k*650)));
+}
+function g1Di(d){ const m=g1.cau+d; if(m<0||m>=G1.length){ if(m>=G1.length) di('ketqua'); return; } g1.cau=m; g1Ve(); }
+
+/* ================= GAME 2 — ROBOT HÁI CHÈ ================= */
+const COT=8, HANG=5, O=84;
+const G2 = [
+ {ten:'Màn 1 · Hàng chè thẳng tắp', bd:[0,2,'R'], bup:[[1,2],[2,2],[3,2],[4,2],[5,2]], da:[], toiuu:3,
+  goiy:'Năm búp chè nằm liền nhau. Lặp lại 5 lần: tiến() rồi hái().', mau:[{t:'for',n:5,body:[{t:'tien'},{t:'hai'}]}]},
+ {ten:'Màn 2 · Cứ hai bước hái một búp', bd:[0,2,'R'], bup:[[2,2],[4,2],[6,2]], da:[[1,1],[3,3],[5,1]], toiuu:4,
+  goiy:'Mỗi vòng: tiến() hai lần rồi hái(). Cần mấy vòng?', mau:[{t:'for',n:3,body:[{t:'tien'},{t:'tien'},{t:'hai'}]}]},
+ {ten:'Màn 3 · Bậc thang lên đồi', bd:[0,4,'R'], bup:[[1,3],[2,2],[3,1],[4,0]], da:[[2,4],[3,4],[4,4]], toiuu:6,
+  goiy:'Một bậc thang = tiến(), quay_trái(), tiến(), quay_phải(), hái(). Lặp 4 bậc.', mau:[{t:'for',n:4,body:[{t:'tien'},{t:'trai'},{t:'tien'},{t:'phai'},{t:'hai'}]}]},
+ {ten:'Màn 4 · Hai luống chè', bd:[0,4,'R'], bup:[[1,4],[2,4],[3,4],[4,4],[0,2],[1,2],[2,2],[3,2]], da:[[1,3],[2,3],[3,3],[5,4]], toiuu:10,
+  goiy:'Dùng hai vòng for: hái hết luống dưới, lên luống trên (rẽ trái, tiến 2 bước, rẽ trái), rồi hái tiếp.',
+  mau:[{t:'for',n:4,body:[{t:'tien'},{t:'hai'}]},{t:'trai'},{t:'tien'},{t:'tien'},{t:'trai'},{t:'for',n:4,body:[{t:'tien'},{t:'hai'}]}]}
+];
+const TEN = {tien:'tiến()', hai:'hái()', trai:'quay_trái()', phai:'quay_phải()'};
+const HUONG = {R:[1,0],U:[0,-1],L:[-1,0],D:[0,1]}, TRAI={R:'U',U:'L',L:'D',D:'R'}, PHAI={R:'D',D:'L',L:'U',U:'R'};
+let g2 = {man:0, ct:[], vao:-1, chay:false, tm:null, x:0,y:0,h:'R',goc:0, hai:new Set()};
+
+function g2Mo(P){ g2.man=Math.min(Math.max((+P.man||1)-1,0),G2.length-1); g2.ct = P.mau? JSON.parse(JSON.stringify(G2[g2.man].mau)) : []; g2.vao=-1; g2Moi(); if(P.chay) g2Chay(); }
+function g2Moi(){
+  g2Dung(); const m=G2[g2.man]; g2.x=m.bd[0]; g2.y=m.bd[1]; g2.h=m.bd[2]; g2.goc=0; g2.hai=new Set();
+  $('#g2man').innerHTML = G2.map((_,k)=>`<button class="${k===g2.man?'on':''}" onclick="g2Chon(${k})">Màn ${k+1}</button>`).join('');
+  $('#g2ten').textContent=m.ten; $('#g2tb').className='thongbao'; $('#g2thuong').style.display='none';
+  $('#g2i').textContent='i = –'; $('#g2v').textContent='Bấm ▶ Chạy để Bot Lặp làm theo chương trình';
+  g2VeDoi(); g2VeMa(-1);
+}
+function g2Chon(k){ g2.man=k; g2.ct=[]; g2.vao=-1; g2Moi(); }
+function g2VeDoi(){
+  const m=G2[g2.man]; let s=`<rect width="672" height="420" fill="url(#gTroi)"/>`;
+  for(let y=0;y<HANG;y++) for(let x=0;x<COT;x++){ s+=`<rect x="${x*O+3}" y="${y*O+3}" width="${O-6}" height="${O-6}" rx="14" fill="${(x+y)%2?'#bbf7d0':'#a7f3d0'}" stroke="#86efac" stroke-width="2"/>`;
+    s+=`<path d="M${x*O+14} ${y*O+O-14} q8 -6 16 0 t16 0" stroke="#4ade80" stroke-width="2" fill="none" opacity=".5"/>`; }
+  m.da.forEach(([x,y])=>{ s+=`<g transform="translate(${x*O},${y*O})"><ellipse cx="42" cy="58" rx="28" ry="10" fill="#0002"/><path d="M16 56 Q14 30 34 24 Q52 16 64 34 Q72 48 66 58 Z" fill="url(#gDa)" stroke="#475569" stroke-width="2"/><path d="M30 34 q8 -6 16 -2" stroke="#e2e8f0" stroke-width="3" fill="none"/></g>`; });
+  m.bup.forEach(([x,y],k)=>{ s+=`<g class="bup${g2.hai.has(x+','+y)?' haiRoi':''}" id="bup${x}_${y}" transform="translate(${x*O},${y*O})"><path d="M42 66 L42 44" stroke="#15803d" stroke-width="4"/><ellipse cx="32" cy="42" rx="13" ry="7" fill="url(#gLa)" transform="rotate(-35 32 42)"/><ellipse cx="52" cy="40" rx="13" ry="7" fill="url(#gLa)" transform="rotate(35 52 40)"/><ellipse cx="42" cy="28" rx="7" ry="12" fill="#86efac" stroke="#15803d" stroke-width="2"/></g>`; });
+  s+=`<g id="robot" transform="translate(${g2.x*O},${g2.y*O})"><g class="xoay" style="transform:rotate(${g2.goc}deg)"><use href="#bot" x="6" y="4" width="72" height="72"/><path d="M70 42 l10 0 l-6 -6 M80 42 l-6 6" stroke="#f59e0b" stroke-width="4" fill="none" stroke-linecap="round"/></g></g>`;
+  $('#g2doi').innerHTML=s; g2Gio();
+}
+function g2Gio(){ const m=G2[g2.man]; $('#g2gio').textContent=`🧺 Giỏ chè: ${g2.hai.size}/${m.bup.length}`; }
+function g2Dong(){ const L=[]; g2.ct.forEach((nd,mi)=>{ L.push({nd,sau:0,mi}); if(nd.t==='for') nd.body.forEach((b,bi)=>L.push({nd:b,sau:1,mi,bi})); }); return L; }
+function g2VeMa(sang, loi){
+  const L=g2Dong(); let s='';
+  L.forEach((d,k)=>{ const tt = d.nd.t==='for'
+      ? `<span class="k">for</span>&nbsp;i&nbsp;<span class="k">in</span>&nbsp;<span class="f">range</span>(<button class="np" onclick="event.stopPropagation();g2N(${d.mi},-1)">−</button><span class="n">${d.nd.n}</span><button class="np" onclick="event.stopPropagation();g2N(${d.mi},1)">+</button>):`
+      : TEN[d.nd.t];
+    const vao = (d.nd.t==='for' && g2.vao===d.mi) || (d.sau && g2.vao===d.mi);
+    s+=`<div class="ln${k===sang?' dangchay':''}${k===loi?' loi':''}${vao?' vao':''}" onclick="g2VaoDong(${d.mi})"><span class="so">${k+1}</span><span style="padding-left:${d.sau*36}px">${tt}</span></div>`;
+    if(d.nd.t==='for' && g2.vao===d.mi && (d.nd.body.length===0 || k===L.length-1 || L[k+1].mi!==d.mi)){} });
+  // con trỏ chèn
+  const ct = g2.vao>=0 ? `<div class="ln"><span class="so"></span><span class="contro" style="padding-left:36px">▌ lệnh mới sẽ vào trong khối for</span></div>` : `<div class="ln"><span class="so"></span><span class="contro">▌ lệnh mới thêm vào đây</span></div>`;
+  $('#g2ma').innerHTML = (s||'') + ct;
+  $('#g2dem').textContent = `· ${L.length} dòng lệnh (ít nhất: ${G2[g2.man].toiuu})`;
+}
+function g2VaoDong(mi){ if(g2.chay) return; g2.vao = g2.ct[mi] && g2.ct[mi].t==='for' ? mi : -1; g2VeMa(-1); }
+function g2N(mi,d){ if(g2.chay) return; const nd=g2.ct[mi]; nd.n=Math.min(10,Math.max(1,nd.n+d)); bop(nd.n); g2VeMa(-1); }
+function g2Them(t){
+  if(g2.chay) return; g2Reset(); bop(2);
+  if(t==='for'){ if(g2.vao>=0){ g2Bao('tin','Bài này chỉ dùng for một tầng — bấm «⇤ Ra khỏi for» trước khi thêm vòng for mới.'); return; } g2.ct.push({t:'for',n:2,body:[]}); g2.vao=g2.ct.length-1; }
+  else if(g2.vao>=0) g2.ct[g2.vao].body.push({t}); else g2.ct.push({t});
+  if(g2Dong().length>30){ g2Xoa(); g2Bao('tin','Chương trình dài quá 30 dòng rồi — thử dùng vòng for cho gọn nhé!'); }
+  g2VeMa(-1);
+}
+function g2Ra(){ g2.vao=-1; g2VeMa(-1); }
+function g2Xoa(){ if(g2.chay) return; g2Reset();
+  if(g2.vao>=0){ const f=g2.ct[g2.vao]; if(f.body.length) f.body.pop(); else { g2.ct.splice(g2.vao,1); g2.vao=-1; } }
+  else if(g2.ct.length){ g2.ct.pop(); } g2VeMa(-1); }
+function g2XoaHet(){ if(g2.chay) return; g2.ct=[]; g2.vao=-1; g2Moi(); }
+function g2GoiY(){ g2Bao('tin','💡 '+G2[g2.man].goiy); }
+function g2Bao(loai, nd){ const e=$('#g2tb'); e.className='thongbao'; void e.offsetWidth; e.className='thongbao '+loai; e.innerHTML=nd; }
+function g2Reset(){ if(g2.hai.size||g2.x!==G2[g2.man].bd[0]||g2.y!==G2[g2.man].bd[1]||g2.goc){ const m=G2[g2.man]; g2.x=m.bd[0];g2.y=m.bd[1];g2.h=m.bd[2];g2.goc=0;g2.hai=new Set(); g2VeDoi(); } $('#g2tb').className='thongbao'; $('#g2thuong').style.display='none'; }
+function g2Buoc(){
+  const B=[]; let ln=0;
+  for(const nd of g2.ct){
+    if(nd.t!=='for'){ B.push({ln,t:nd.t}); ln++; continue; }
+    const f=ln; ln++; const bd=ln;
+    for(let i=0;i<nd.n;i++){ B.push({ln:f,t:'loop',i,vong:i+1,n:nd.n}); nd.body.forEach((b,bi)=>B.push({ln:bd+bi,t:b.t,i,vong:i+1,n:nd.n})); }
+    ln+=nd.body.length;
+  }
+  return B;
+}
+function g2Dung(){ if(g2.tm){ clearTimeout(g2.tm); g2.tm=null; } g2.chay=false; const b=$('#g2chay'); if(b) b.disabled=false; }
+function g2Chay(){
+  if(g2.chay) return; if(!g2.ct.length){ g2Bao('tin','Chưa có lệnh nào. Bấm các khối lệnh màu bên trên để ghép chương trình.'); return; }
+  const rong = g2.ct.find(n=>n.t==='for'&&!n.body.length); if(rong){ g2Bao('sai','Khối <b>for</b> đang trống — vòng lặp cần ít nhất một lệnh thụt vào bên trong.'); buzz(); return; }
+  const m=G2[g2.man]; g2.x=m.bd[0]; g2.y=m.bd[1]; g2.h=m.bd[2]; g2.goc=0; g2.hai=new Set(); g2VeDoi();
+  $('#g2tb').className='thongbao'; $('#g2thuong').style.display='none';
+  const B=g2Buoc(); let k=0; g2.chay=true; $('#g2chay').disabled=true;
+  const loi=(ln,nd)=>{ g2Dung(); g2VeMa(-1,ln); g2Bao('sai',nd); buzz(); };
+  const mot=()=>{
+    if(k>=B.length){ g2Dung(); g2VeMa(-1); return g2Xong(); }
+    const b=B[k++]; g2VeMa(b.ln);
+    if(b.i!==undefined){ $('#g2i').textContent='i = '+b.i; $('#g2v').textContent=`Vòng ${b.vong} / ${b.n}`; }
+    else { $('#g2i').textContent='i = –'; $('#g2v').textContent='Lệnh ngoài vòng lặp'; }
+    const vt = b.i!==undefined ? ` (ở vòng ${b.vong}, i = ${b.i})` : '';
+    if(b.t==='tien'){ const [dx,dy]=HUONG[g2.h], nx=g2.x+dx, ny=g2.y+dy;
+      if(nx<0||ny<0||nx>=COT||ny>=HANG) return loi(b.ln,`🚧 Bot Lặp đi ra ngoài đồi chè ở dòng ${b.ln+1}${vt}. Kiểm tra lại số lần lặp hoặc hướng quay.`);
+      if(m.da.some(([x,y])=>x===nx&&y===ny)) return loi(b.ln,`🪨 Bot Lặp đâm vào tảng đá ở dòng ${b.ln+1}${vt}. Đổi hướng trước khi tiến.`);
+      g2.x=nx; g2.y=ny; $('#robot').setAttribute('transform',`translate(${nx*O},${ny*O})`); bop(1); }
+    else if(b.t==='hai'){ const key=g2.x+','+g2.y;
+      if(!m.bup.some(([x,y])=>x===g2.x&&y===g2.y) || g2.hai.has(key)) return loi(b.ln,`🍂 Ô này không có búp chè để hái (dòng ${b.ln+1}${vt}). Có thể robot chưa tiến đủ bước.`);
+      g2.hai.add(key); const e=document.getElementById(`bup${g2.x}_${g2.y}`); if(e) e.classList.add('haiRoi'); g2Gio(); am(990,.1,'sine',.12); }
+    else if(b.t==='trai'||b.t==='phai'){ g2.h = b.t==='trai'?TRAI[g2.h]:PHAI[g2.h]; g2.goc += b.t==='trai'?-90:90; const x=document.querySelector('#robot .xoay'); if(x) x.style.transform=`rotate(${g2.goc}deg)`; bop(3); }
+    else if(b.t==='loop'){ am(440+b.i*60,.07,'triangle',.08); }
+    if(INSTANT) mot(); else g2.tm=setTimeout(mot, b.t==='loop'?380:480);
+  };
+  mot();
+}
+function g2Xong(){
+  const m=G2[g2.man], L=g2Dong().length;
+  if(g2.hai.size<m.bup.length){ g2Bao('sai',`Chương trình chạy xong nhưng còn <b>${m.bup.length-g2.hai.size}</b> búp chè chưa hái. Thêm vòng lặp hoặc tăng số lần lặp nhé!`); buzz(); return; }
+  const sao = L<=m.toiuu?3:(L<=m.toiuu+3?2:1);
+  g2Bao('ok',`<span class="sao">${'⭐'.repeat(sao)}${'☆'.repeat(3-sao)}</span><br>Hái đủ ${m.bup.length} búp chè với <b>${L}</b> dòng lệnh! ${sao<3?`Thử rút gọn còn ${m.toiuu} dòng bằng vòng for để được 3 sao.`:'Gọn nhất rồi — tuyệt vời!'}`);
+  ting(); phaoGiay();
+  $('#g2thuong').style.display='block';
+  $('#g2nutdoi').innerHTML = S.teams.map((t,k)=>`<button class="nut" style="background:${MAUDOI[k]};box-shadow:none" onclick="g2Thuong(${k},${sao},this)">+${sao*10} ${esc(t.ten)}</button>`).join('');
+  g2.saoCuoi=sao;
+}
+function g2Thuong(k,sao,btn){ if(MAU) return; congDiem(k,sao*10); ghiTK('M'+(g2.man+1),1,0); btn.disabled=true; ting(); }
+
+/* ================= GAME 3 — ĐẤU GIÁ CODE ================= */
+function vet(cols,rows,out,note){ return {cols,rows,out,note}; }
+const G3 = [
+ {id:'L1', code:'for i in range(1, 4):\n    print(i * 2)', cd:'2 4 6',
+  sim:()=>{const R=[],O=[]; pyRange(1,4).forEach((i,k)=>{R.push([k+1,i,i*2]);O.push(String(i*2));}); return vet(['Vòng','i','In ra i * 2'],R,O,'');},
+  giai:'Hàng thật: i = 1, 2, 3 nên in 2, 4, 6.'},
+ {id:'L2', code:'for i in range(4):\n    print(i)', cd:'1 2 3 4',
+  sim:()=>{const R=[],O=[]; pyRange(4).forEach((i,k)=>{R.push([k+1,i,i]);O.push(String(i));}); return vet(['Vòng','i','In ra'],R,O,'');},
+  giai:'Hàng lỗi: range(4) bắt đầu từ 0 nên in 0 1 2 3.'},
+ {id:'L3', code:'s = 0\nfor i in range(1, 6):\n    s = s + i\nprint(s)', cd:'15',
+  sim:()=>{const R=[]; let s=0; pyRange(1,6).forEach((i,k)=>{s+=i;R.push([k+1,i,s]);}); return vet(['Vòng','i','s'],R,[String(s)],'Hết vòng lặp → print(s)');},
+  giai:'Hàng thật: s = 1 + 2 + 3 + 4 + 5 = 15.'},
+ {id:'L4', code:'for i in range(10, 0, -3):\n    print(i)', cd:'10 7 4 1',
+  sim:()=>{const R=[],O=[]; pyRange(10,0,-3).forEach((i,k)=>{R.push([k+1,i,i]);O.push(String(i));}); return vet(['Vòng','i','In ra'],R,O,'i tiếp theo là −2, đã vượt qua số dừng 0 → dừng');},
+  giai:'Hàng thật: đếm lùi 3 đơn vị: 10, 7, 4, 1.'},
+ {id:'L5', code:'for i in range(2, 10, 2):\n    print(i)', cd:'2 4 6 8 10',
+  sim:()=>{const R=[],O=[]; pyRange(2,10,2).forEach((i,k)=>{R.push([k+1,i,i]);O.push(String(i));}); return vet(['Vòng','i','In ra'],R,O,'i = 10 bằng số dừng → không chạy vòng này');},
+  giai:'Hàng lỗi: 10 là số dừng nên không được in.'},
+ {id:'L6', code:'t = 1\nfor i in range(1, 5):\n    t = t * i\nprint(t)', cd:'120',
+  sim:()=>{const R=[]; let t=1; pyRange(1,5).forEach((i,k)=>{t*=i;R.push([k+1,i,t]);}); return vet(['Vòng','i','t'],R,[String(t)],'Hết vòng lặp → print(t)');},
+  giai:'Hàng lỗi: i chỉ chạy tới 4 nên t = 1 × 2 × 3 × 4 = 24, không phải 120.'},
+ {id:'L7', code:'dem = 0\nfor i in range(1, 21):\n    if i % 5 == 0:\n        dem = dem + 1\nprint(dem)', cd:'4',
+  sim:()=>{const R=[]; let d=0; pyRange(1,21).forEach((i,k)=>{const c=i%5===0; if(c)d++; R.push([k+1,i,c?'True':'False',d]);}); return vet(['Vòng','i','i % 5 == 0','dem'],R,[String(d)],'Hết vòng lặp → print(dem)');},
+  giai:'Hàng thật: các số chia hết cho 5 từ 1 đến 20 là 5, 10, 15, 20 → 4 số.'},
+ {id:'L8', code:'for i in range(5, 0):\n    print(i)', cd:'5 4 3 2 1',
+  sim:()=>vet(['Vòng','i','In ra'],[],[],'Số đầu 5 lớn hơn số dừng 0 mà bước mặc định là +1 → dãy rỗng, không vòng nào chạy'),
+  giai:'Hàng lỗi: thiếu bước âm. Muốn in 5 4 3 2 1 phải viết range(5, 0, -1).'},
+ {id:'L9', code:'for i in range(3):\n    print("A")\nprint("B")', cd:'A B A B A B',
+  sim:()=>{const R=[],O=[]; pyRange(3).forEach((i,k)=>{R.push([k+1,i,'A']);O.push('A');}); O.push('B'); return vet(['Vòng','i','In ra'],R,O,'print("B") không thụt lề → nằm ngoài for, chỉ chạy 1 lần sau vòng lặp');},
+  giai:'Hàng lỗi: print("B") không thụt lề nên nằm ngoài vòng lặp → in A A A B.'}
+];
+let g3 = {lo:0, gia:[0,0,0,0], lat:false, an:[]};
+function g3Mo(P){ g3.lo=Math.min(Math.max((+P.lo||1)-1,0),G3.length-1); g3Ve(); if(P.lat){ g3.gia=[300,0,500,200]; g3VeVi(); g3Lat(); } }
+function g3Ve(){
+  g3.an.forEach(clearTimeout); g3.an=[]; g3.lat=false; g3.gia=[0,0,0,0];
+  const l=G3[g3.lo];
+  $('#g3so').textContent='LÔ SỐ '+(g3.lo+1)+'/'+G3.length;
+  $('#g3cham').innerHTML=G3.map((_,k)=>`<i class="${k===g3.lo?'ht':''}"></i>`).join('');
+  $('#g3code').innerHTML=toMau(l.code); $('#g3cd').textContent=l.cd;
+  $('#g3dau').className='dau'; $('#g3dau').textContent='';
+  $('#g3tb').className='thongbao'; $('#g3khung').style.display='none'; $('#g3vet').innerHTML='';
+  $('#g3ra').innerHTML='<span style="color:#64748b">▶ kết quả thật hiện ở đây</span>'; $('#g3lat').disabled=false;
+  g3VeVi();
+}
+function g3VeVi(kq){
+  $('#g3vi').innerHTML=S.teams.map((t,k)=>`<div class="vi" style="background:${MAUDOI[k]}"><div class="tren"><span>${esc(t.ten)}</span><span class="xu">💰 ${t.xu}</span></div>
+    <div class="gia"><button onclick="g3Gia(${k},-100)" ${g3.lat?'disabled':''}>−100</button><b>${g3.gia[k]}</b><button onclick="g3Gia(${k},100)" ${g3.lat?'disabled':''}>+100</button></div>
+    <div class="kq">${kq?kq[k]:(g3.gia[k]?'Đã đặt giá — tin là hàng thật':'Chưa đặt — nghi là hàng lỗi')}</div></div>`).join('');
+}
+function g3Gia(k,d){ if(g3.lat) return; const g=Math.max(0,Math.min(S.teams[k].xu,g3.gia[k]+d)); if(g!==g3.gia[k]){ g3.gia[k]=g; am(600+g/5,.07,'triangle',.1); } g3VeVi(); }
+function g3Lat(){
+  if(g3.lat) return; g3.lat=true; $('#g3lat').disabled=true;
+  const l=G3[g3.lo], v=l.sim(), that=(v.out.join(' ')||'(không in gì)')===l.cd;
+  // bảng chạy từng vòng
+  $('#g3khung').style.display='block';
+  $('#g3vet').innerHTML=`<tr>${v.cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr>`;
+  const ra=$('#g3ra'); ra.innerHTML='';
+  const ketThuc=()=>{
+    if(v.note) $('#g3vet').insertAdjacentHTML('beforeend',`<tr><td colspan="${v.cols.length}" style="font-family:Segoe UI;font-size:16px;color:#475569;text-align:left">↳ ${esc(v.note)}</td></tr>`);
+    if(!v.out.length) ra.innerHTML='<span style="color:#fca5a5">∅ (không in gì)</span>'; else v.out.forEach(o=>ra.insertAdjacentHTML('beforeend',`<span class="p">${esc(o)}</span>`));
+    const d=$('#g3dau'); d.textContent= that?'HÀNG THẬT ✓':'HÀNG LỖI ✗'; d.className='dau on '+(that?'that':'loi');
+    $('#g3tb').className='thongbao '+(that?'ok':'sai'); $('#g3tb').textContent=l.giai;
+    let dung=0, sai=0; const kq=[];
+    S.teams.forEach((t,k)=>{ const g=g3.gia[k];
+      if(g>0){ if(that){ t.xu+=g; kq.push('🎉 +'+g+' xu'); dung++; } else { t.xu-=g; kq.push('💸 −'+g+' xu — mua phải hàng lỗi'); sai++; } }
+      else { if(that){ kq.push('😮 Bỏ lỡ hàng thật'); sai++; } else { kq.push('🦅 Tinh mắt, không mắc lừa!'); dung++; } } });
+    luu(); g3VeVi(kq); ghiTK(l.id,dung,sai);
+    const ch=$('#g3cham').children[g3.lo]; if(ch) ch.className = dung>=sai?'ok':'sai';
+    if(that){ ting(); phaoGiay(); } else buzz();
+  };
+  const hang=(r)=>{ $('#g3vet').insertAdjacentHTML('beforeend',`<tr class="moi">${r.map((c,j)=>`<td class="${v.cols[j]==='i'?'ci':''}">${esc(c)}</td>`).join('')}</tr>`); const kh=$('#g3khung'); kh.scrollTop=kh.scrollHeight; };
+  if(INSTANT){ v.rows.forEach(hang); ketThuc(); return; }
+  const tre = v.rows.length>8?220:520;
+  v.rows.forEach((r,k)=>g3.an.push(setTimeout(()=>{ hang(r); bop(k%8); }, 300+k*tre)));
+  g3.an.push(setTimeout(ketThuc, 500+v.rows.length*tre));
+}
+function g3Di(d){ const m=g3.lo+d; if(m<0) return; if(m>=G3.length){ di('ketqua'); return; } g3.lo=m; g3Ve(); }
+
+/* ================= KẾT QUẢ ================= */
+function dsMuc(){
+  const motDong = c => c.replace(/:\n\s*/g,': ').replace(/\n\s*/g,'; ');
+  const M=[]; G1.forEach((q,k)=>M.push({ma:q.id,nhan:'Đua range – câu '+(k+1),nd:motDong(q.code),q}));
+  G3.forEach((l,k)=>M.push({ma:l.id,nhan:'Đấu giá – lô '+(k+1),nd:motDong(l.code),l}));
+  return M;
+}
+function kqVe(){
+  const M=dsMuc().map(m=>{ const t=S.stats[m.ma]; return Object.assign(m,{t, tl: t&&(t.dung+t.sai)? t.dung/(t.dung+t.sai):null}); });
+  const da=M.filter(m=>m.tl!==null); const D=da.reduce((a,m)=>a+m.t.dung,0), T=da.reduce((a,m)=>a+m.t.dung+m.t.sai,0);
+  const man2=[1,2,3,4].filter(k=>S.stats['M'+k]).length;
+  const dau=[...S.teams].sort((a,b)=>b.diem-a.diem)[0];
+  $('#kqkpi').innerHTML=[[da.length+'/'+M.length,'câu & lô đã chơi'],[T?Math.round(D*100/T)+'%':'–','lượt trả lời đúng'],[man2+'/4','màn Robot hái chè đã qua'],[esc(dau.ten),'đội dẫn đầu']]
+    .map(([b,s])=>`<div class="kinh"><b>${b}</b><span>${s}</span></div>`).join('');
+  const thu=[...S.teams].map((t,k)=>({t,k})).sort((a,b)=>b.t.diem-a.t.diem);
+  $('#kqbxh').innerHTML=thu.map((o,i)=>`<div class="h" style="background:${MAUDOI[o.k]}"><span class="hang">${['🥇','🥈','🥉','🏅'][i]}</span>${esc(o.t.ten)}<span class="d">${o.t.diem} điểm · 💰 ${o.t.xu}</span></div>`).join('');
+  const sai=da.filter(m=>m.tl<1).sort((a,b)=>a.tl-b.tl).slice(0,3);
+  $('#kqsai').innerHTML = sai.length ? sai.map(m=>{ let ly='';
+      if(m.q){ const c=m.t.chon||{}; const w=Object.keys(c).filter(x=>+x!==0).sort((a,b)=>c[b]-c[a])[0]; if(w!==undefined) ly=`Lựa chọn sai nhiều nhất: <b>${esc(m.q.op[w][0])}</b> — ${esc(m.q.op[w][1])}`; }
+      else ly=esc(m.l.giai);
+      return `<div class="thongbao sai" style="display:block;animation:none;margin:8px 0"><b>${m.nhan}</b> · đúng ${Math.round(m.tl*100)}% · <code>${esc(m.nd)}</code><br>${ly}</div>`; }).join('')
+    : '<p style="color:var(--chu2)">Chưa có dữ liệu — chơi Game 1 hoặc Game 3 rồi quay lại đây.</p>';
+  veBieuDo(M);
+}
+function veBieuDo(M){
+  const cv=$('#kqbd'), r=cv.getBoundingClientRect(), dpr=window.devicePixelRatio||1; cv.width=r.width*dpr; cv.height=r.height*dpr;
+  const c=cv.getContext('2d'); c.scale(dpr,dpr); const W=r.width, H=r.height, L=44, B=56, T=14;
+  c.clearRect(0,0,W,H); c.font='600 13px Segoe UI'; c.fillStyle='#64748b'; c.strokeStyle='#e2e8f0';
+  [0,25,50,75,100].forEach(p=>{ const y=T+(H-T-B)*(1-p/100); c.beginPath(); c.moveTo(L,y); c.lineTo(W-8,y); c.stroke(); c.fillText(p+'%',6,y+4); });
+  const n=M.length, bw=(W-L-16)/n;
+  M.forEach((m,k)=>{ const x=L+k*bw+bw*.15, w=bw*.7;
+    if(m.tl!==null){ const h=(H-T-B)*m.tl, y=H-B-h; c.fillStyle=m.tl>=.7?'#16a34a':(m.tl>=.4?'#f59e0b':'#dc2626');
+      c.beginPath(); if(c.roundRect) c.roundRect(x,y,w,Math.max(h,2),[6,6,0,0]); else c.rect(x,y,w,Math.max(h,2)); c.fill();
+      c.fillStyle='#1e1b4b'; c.font='800 12px Segoe UI'; c.textAlign='center'; c.fillText(Math.round(m.tl*100)+'%',x+w/2,y-4); }
+    else { c.fillStyle='#e2e8f0'; c.fillRect(x,H-B-3,w,3); }
+    c.fillStyle='#475569'; c.font='700 12px Segoe UI'; c.textAlign='center'; c.fillText(m.ma,x+w/2,H-B+18); });
+  c.textAlign='left'; c.fillStyle='#4f46e5'; c.font='700 13px Segoe UI'; c.fillText('C = Đua range · L = Đấu giá code',L,H-12);
+}
+function xuatCSV(){
+  const q=s=>'"'+String(s).replace(/"/g,'""')+'"';
+  const R=[['Loại','Mã','Nội dung','Lượt đúng','Lượt sai','Tỉ lệ đúng (%)']];
+  dsMuc().forEach(m=>{ const t=S.stats[m.ma]; if(!t) return; const n=t.dung+t.sai; R.push([m.nhan,m.ma,m.nd,t.dung,t.sai,n?Math.round(t.dung*100/n):'']); });
+  [1,2,3,4].forEach(k=>{ const t=S.stats['M'+k]; if(t) R.push(['Robot hái chè','M'+k,G2[k-1].ten,t.dung,t.sai,'']); });
+  R.push([]); R.push(['Đội','Điểm','Xu']); S.teams.forEach(t=>R.push([t.ten,t.diem,t.xu]));
+  const csv='﻿'+R.map(r=>r.map(q).join(',')).join('\r\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  const d=new Date(); a.download=`ket-qua-vong-lap-for-${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.csv`;
+  document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},500);
+}
+function datLaiXu(){ if(MAU) return; S.teams.forEach(t=>t.xu=1000); luu(); veDiem(); kqVe(); }
+function xoaHet(){ if(MAU) return; if(!confirm('Xoá toàn bộ điểm và thống kê của buổi học? (Tên đội giữ nguyên)')) return; const ten=S.teams.map(t=>t.ten); S=macDinh(); S.teams.forEach((t,k)=>t.ten=ten[k]); luu(); veDiem(); kqVe(); }
+
+/* dữ liệu thử cho chế độ chụp — không lưu */
+function mauDL(){
+  const d=macDinh(); [['Đội Python',80],['Đội Vòng Lặp',110],['Đội Range',60],['Đội Bit',90]].forEach(([t,s],k)=>{d.teams[k].ten=t;d.teams[k].diem=s;});
+  d.teams.forEach((t,k)=>t.xu=[1300,800,1500,1100][k]);
+  const tl=[[4,0],[3,1],[1,3],[2,2],[2,2],[3,1],[1,3],[3,1],[2,2],[4,0]];
+  G1.forEach((q,k)=>{ d.stats[q.id]={dung:tl[k][0],sai:tl[k][1],chon:{0:tl[k][0],2:tl[k][1]}}; });
+  [[4,0],[1,3],[3,1],[3,1],[1,3],[2,2],[3,1],[0,4],[1,3]].forEach((x,k)=>{ d.stats[G3[k].id]={dung:x[0],sai:x[1],chon:{}}; });
+  d.stats.M1={dung:4,sai:0}; d.stats.M2={dung:3,sai:0}; d.stats.M3={dung:2,sai:0};
+  return d;
+}
+addEventListener('resize',()=>{ if($('#m-ketqua').classList.contains('on')) kqVe(); });
+route();
+</script>
+</body>
+</html>
